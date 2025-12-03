@@ -1,0 +1,74 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: gdash_mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - gdash-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: gdash_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASS}
+    networks:
+      - gdash-net
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  collector-python:
+    build: ./collector-python
+    container_name: gdash_collector
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: ${RABBIT_USER}
+      RABBIT_PASS: ${RABBIT_PASS}
+    networks:
+      - gdash-net
+    restart: always
+
+  worker-go:
+    build: ./worker-go
+    container_name: gdash_worker
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBIT_URL: amqp://${RABBIT_USER}:${RABBIT_PASS}@rabbitmq:5672/
+      API_URL: http://backend-api:3000/api
+    networks:
+      - gdash-net
+    restart: always
+  
+  backend-api:
+    build: ./backend-api
+    container_name: gdash_api
+    ports:
+      - "3000:3000"
+    environment:
+      MONGO_URI: mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/gdash_weather?authSource=admin
+    depends_on:
+      - mongodb
+    networks:
+      - gdash-net
+
+volumes:
+  mongo_data:
+
+networks:
+  gdash-net:
+    driver: bridge
