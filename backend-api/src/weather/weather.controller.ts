@@ -1,0 +1,19 @@
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { WeatherService } from './weather.service';
+import { CreateWeatherDto } from './dto/create-weather.dto';
+
+@Controller('weather')
+export class WeatherController {
+  constructor(private readonly weatherService: WeatherService) {}
+
+  @Post()
+  create(@Body() CreateWeatherDto: CreateWeatherDto){
+    console.log('Dados do Worker recebidos: ', CreateWeatherDto);
+    return this.weatherService.create(CreateWeatherDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.weatherService.findAll();
+  }
+}
