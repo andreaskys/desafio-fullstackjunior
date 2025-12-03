@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Wind, Droplets, Thermometer, BrainCircuit, LogOut, Gamepad2 } from 'lucide-react';
+import { Download, Wind, Droplets, Thermometer, BrainCircuit, LogOut, Gamepad2 } from 'lucide-react';
 import type { WeatherData } from './types/weather';
 import { format } from 'date-fns';
 import { Login } from './Login';
@@ -39,6 +39,10 @@ function Dashboard({ onLogout, onNavigate }: { onLogout: () => void, onNavigate:
     temp: item.temperature
   }));
 
+  const handleExportCSV = () => {
+    window.open(`${API_URL}/export/csv`, '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-8">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -47,8 +51,11 @@ function Dashboard({ onLogout, onNavigate }: { onLogout: () => void, onNavigate:
              <h1 className="text-3xl font-bold text-slate-800">🌥️ G-Dash Weather</h1>
              <Badge variant="outline" className="text-lg px-4 py-1">{latest?.city || "Goiânia"}</Badge>
           </div>
+          
           <div className="flex gap-2">
-            {/* Botão Novo */}
+            <Button variant="outline" onClick={handleExportCSV}>
+              <Download className="mr-2 h-4 w-4" /> CSV
+            </Button>
             <Button variant="outline" onClick={onNavigate}>
               <Gamepad2 className="mr-2 h-4 w-4" /> API Pública
             </Button>
@@ -58,6 +65,7 @@ function Dashboard({ onLogout, onNavigate }: { onLogout: () => void, onNavigate:
           </div>
         </div>
 
+        {/* Cards de Status */}
         {latest && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
@@ -91,6 +99,7 @@ function Dashboard({ onLogout, onNavigate }: { onLogout: () => void, onNavigate:
           </div>
         )}
 
+        {/* Gráfico */}
         {data.length > 0 && (
           <Card className="col-span-4">
             <CardHeader><CardTitle>Histórico de Temperatura</CardTitle></CardHeader>
@@ -110,6 +119,7 @@ function Dashboard({ onLogout, onNavigate }: { onLogout: () => void, onNavigate:
           </Card>
         )}
 
+        {/* Tabela */}
         {data.length > 0 && (
           <Card>
             <CardHeader><CardTitle>Últimos Registros</CardTitle></CardHeader>
